@@ -7,7 +7,8 @@ import subprocess
 def pip_install(
         package, vision='',
         repository='-i https://pypi.tuna.tsinghua.edu.cn/simple',
-        p=None
+        p=None,
+        output=True
 ):
     if vision:
         vision = '==' + vision
@@ -16,9 +17,10 @@ def pip_install(
         p.stdin.write(command.encode())
     else:
         p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-    for line in iter(p.stdout.readline, b''):
-        print(line.decode())
-    p.stdout.close()
+    if output:
+        for line in iter(p.stdout.readline, b''):
+            print(line.decode())
+        p.stdout.close()
     p.wait()
 
 

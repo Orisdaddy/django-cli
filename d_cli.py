@@ -9,13 +9,12 @@ from builder.core import require, project, wsgi, git
 
 def start():
     # 安装键位控制包
-    script.pip_install('pynput')
+    script.pip_install('pynput', output=False)
     listen = script.cc.listen
     # 项目名称
     project_name = CHOICE_RES['project_name']
     while not project_name:
         project_name = input("项目名称:")
-        print('\033[1;35;0m字体变色，但无背景色 \033[0m')
     CHOICE_RES['project_name'] = project_name
     # 选择导入构建配置文件
     conf = None
@@ -49,6 +48,8 @@ def start():
     # 开始创建项目
     project.create()
     require.create()
+    wsgi.create()
+    git.create()
 
     # 构建虚拟环境内容
     # dev = 'z'

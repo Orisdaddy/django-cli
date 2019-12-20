@@ -2,7 +2,7 @@ Config = {
     'django_vision': '2.2.6',
     'wsgi': {
         'engine': 'gunicorn',
-        'mode': ''
+        'mode': 'gevent'
     },
 
     'application': [

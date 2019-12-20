@@ -3,26 +3,6 @@ import random
 from ..config import CHOICE_RES
 from .common import wopen
 
-manage_content = """import os
-import sys
-
-
-def main():
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pro1.settings')
-    try:
-        from django.core.management import execute_from_command_line
-    except ImportError as exc:
-        raise ImportError(
-            "Couldn't import Django. Are you sure it's installed and "
-            "available on your PYTHONPATH environment variable? Did you "
-            "forget to activate a virtual environment?"
-        ) from exc
-    execute_from_command_line(sys.argv)
-
-
-if __name__ == '__main__':
-    main()
-"""
 
 init_db_content = '''import pymysql
 
@@ -37,14 +17,12 @@ urlpatterns = [
 ]
 """
 
-wsgi_content = """import os
+models_content = '''from django.db import models
 
-from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pro1.settings')
-
-application = get_wsgi_application()
-"""
+# class User(models.Model):
+#     username = models.CharField(max_length=32, unique=True)
+'''
 
 
 def get_random_string(length):
@@ -55,7 +33,7 @@ def get_random_string(length):
 def create_application(pro_name, app_conf):
     app_name = app_conf['name']
     views = app_conf['views']
-    app_path = pro_name + '/' + app_name
+    app_path = 'project/' + pro_name + '/' + app_name
 
     os.makedirs(app_path)
     os.makedirs(app_path + '/migrations')
@@ -74,9 +52,14 @@ def create_application(pro_name, app_conf):
             f.write(init_db_content)
     else:
         wopen(f'{app_path}/__init__.py').close()
+    admin_content = '''from django.contrib import admin
+# from {0} import models
+
+# admin.site.register(models.User)
+'''.format(app_name)
 
     with wopen(f'{app_path}/admin.py') as f:
-        f.write('from django.contrib import admin')
+        f.write(admin_content)
 
     apps_content = """from django.apps import AppConfig
 
@@ -91,7 +74,7 @@ class App1Config(AppConfig):
 
     print(f'Creating file: {app_path}/models.py')
     with wopen(f'{app_path}/models.py') as f:
-        f.write('from django.db import models')
+        f.write(models_content)
 
     print(f'Creating file: {app_path}/test.py')
     with wopen(f'{app_path}/test.py') as f:
@@ -101,19 +84,40 @@ class App1Config(AppConfig):
 
 
 def create_project(pro_name):
-    pro_path = pro_name+'/'+pro_name
+    pro_path = 'project/' + pro_name + '/' + pro_name
     os.makedirs(pro_path)
 
 
 def create_manage_file(pro_name):
     print('Creating file: manage.py')
-    with wopen(f'{pro_name}/manage.py') as f:
+    manage_content = """import os
+import sys
+
+
+def main():
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{0}.settings')
+    try:
+        from django.core.management import execute_from_command_line
+    except ImportError as exc:
+        raise ImportError(
+            "Couldn't import Django. Are you sure it's installed and "
+            "available on your PYTHONPATH environment variable? Did you "
+            "forget to activate a virtual environment?"
+        ) from exc
+    execute_from_command_line(sys.argv)
+
+
+if __name__ == '__main__':
+    main()
+""".format(pro_name)
+    with wopen(f'project/{pro_name}/manage.py') as f:
         f.write(manage_content)
-    wopen(f'{pro_name}/test.py').close()
+    wopen(f'project/{pro_name}/test.py').close()
 
 
 def create_root_dir_file(pro_name):
     secret_key = get_random_string(50)
+    pro_path = 'project/' + pro_name
     database_conf = CHOICE_RES['database']
     application_conf = CHOICE_RES['application']
     if application_conf is None:
@@ -232,15 +236,26 @@ USE_TZ = True
 STATIC_URL = '/static/'
 """ % (secret_key, application, pro_name, pro_name, database)
 
-    wopen(f'{pro_name}/{pro_name}/__init__.py').close()
+    wopen(f'{pro_path}/{pro_name}/__init__.py').close()
+
     print(f'Creating file: {pro_name}/setting.py')
-    with wopen(f'{pro_name}/{pro_name}/setting.py') as f:
+    with wopen(f'{pro_path}/{pro_name}/setting.py') as f:
         f.write(setting_content)
+
     print(f'Creating file: {pro_name}/urls.py')
-    with wopen(f'{pro_name}/{pro_name}/urls.py') as f:
+    with wopen(f'{pro_path}/{pro_name}/urls.py') as f:
         f.write(urls_content)
+
+    wsgi_content = """import os
+
+from django.core.wsgi import get_wsgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{0}.settings')
+
+application = get_wsgi_application()
+""".format(pro_name)
     print(f'Creating file: {pro_name}/wsgi.py')
-    with wopen(f'{pro_name}/{pro_name}/wsgi.py') as f:
+    with wopen(f'{pro_path}/{pro_name}/wsgi.py') as f:
         f.write(wsgi_content)
 
 

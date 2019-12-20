@@ -11,7 +11,6 @@ requirement = {
 
 def requiretxt(pro_name):
     requirement_content = ''
-    print(requirement)
     for package, vision in requirement.items():
         if isinstance(vision, bool):
             if vision is True:
@@ -20,8 +19,8 @@ def requiretxt(pro_name):
                 pass
         else:
             requirement_content += package + '==' + vision + '\n'
-
-    with wopen(f'{pro_name}/requirement.txt') as f:
+    print(f'Creating file: {pro_name}/requirement.txt')
+    with wopen(f'project/{pro_name}/requirement.txt') as f:
         f.write(requirement_content)
 
 
