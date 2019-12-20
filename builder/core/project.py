@@ -9,14 +9,6 @@ init_db_content = '''import pymysql
 pymysql.install_as_MySQLdb()
 '''
 
-urls_content = """from django.contrib import admin
-from django.urls import path
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-]
-"""
-
 models_content = '''from django.db import models
 
 
@@ -41,7 +33,7 @@ def create_application(pro_name, app_conf):
     wopen(f'{app_path}/migrations/__init__.py').close()
 
     if views:
-        os.makedirs(app_path + '/s')
+        os.makedirs(app_path + '/views')
     else:
         print(f'Creating file: {app_path}/views.py')
         wopen(f'{app_path}/views.py').close()
@@ -78,14 +70,34 @@ class App1Config(AppConfig):
 
     print(f'Creating file: {app_path}/test.py')
     with wopen(f'{app_path}/test.py') as f:
-        f.write('from django.test import TestCase')\
+        f.write('from django.test import TestCase')
+    django_vision = CHOICE_RES['django_vision']
+    if django_vision.startswith('1'):
+        urls_content = '''from django.conf.urls import url
+
+urlpatterns = [
+
+]
+'''
+    else:
+        urls_content = '''from django.urls import path, include
+
+urlpatterns = [
+
+]
+'''
+    print(f'Creating file: {app_path}/urls.py')
+    with wopen(f'{app_path}/urls.py') as f:
+        f.write(urls_content)
 
     return app_name
 
 
 def create_project(pro_name):
     pro_path = 'project/' + pro_name + '/' + pro_name
+    templates_path = 'project/' + pro_name + '/templates'
     os.makedirs(pro_path)
+    os.makedirs(templates_path)
 
 
 def create_manage_file(pro_name):
@@ -127,7 +139,7 @@ def create_root_dir_file(pro_name):
         for app in application_conf:
             # 创建app并返回app_name
             app_name = create_application(pro_name, app)
-            application += "\n\t'" + app_name + "',"
+            application += "\r\n\t'" + app_name + "',"
     if not database_conf:
         database = '''{
     'default': {
@@ -241,13 +253,43 @@ STATIC_URL = '/static/'
     print(f'Creating file: {pro_name}/setting.py')
     with wopen(f'{pro_path}/{pro_name}/setting.py') as f:
         f.write(setting_content)
+    django_vision = CHOICE_RES['django_vision']
+    if django_vision.startswith('1'):
+        from_url = 'from django.conf.urls import url, include'
+    else:
+        from_url = 'from django.urls import path, include'
+    url_app = ''
+    if application_conf:
+        for i, app in enumerate(application_conf):
+            app_name = app['name']
+
+            if django_vision.startswith('1'):
+                if i == 0:
+                    url_app += f"\turl(r'^admin/', admin.site.urls),\r\n"
+                url_app += f"\turl('', include('{app_name}.urls')),\r\n"
+            else:
+                if i == 0:
+                    url_app += f"\tpath('admin/', admin.site.urls),\r\n"
+                url_app += f"\tpath('', include('{app_name}.urls')),\r\n"
+    else:
+        if django_vision.startswith('1'):
+            url_app = f"\turl(r'^admin/', admin.site.urls),\r\n"
+        else:
+            url_app = f"\tpath('admin/', admin.site.urls),\r\n"
+
+    urls_content = """from django.contrib import admin
+{0}
+
+urlpatterns = [
+{1}
+]
+""".format(from_url, url_app)
 
     print(f'Creating file: {pro_name}/urls.py')
     with wopen(f'{pro_path}/{pro_name}/urls.py') as f:
         f.write(urls_content)
 
     wsgi_content = """import os
-
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{0}.settings')
@@ -258,10 +300,25 @@ application = get_wsgi_application()
     with wopen(f'{pro_path}/{pro_name}/wsgi.py') as f:
         f.write(wsgi_content)
 
+    if django_vision.startswith('3'):
+        asgi_content = """import os
+
+from django.core.asgi import get_asgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{0}.settings')
+
+application = get_asgi_application()
+""".format(pro_name)
+        print(f'Creating file: {pro_name}/asgi.py')
+        with wopen(f'{pro_path}/{pro_name}/asgi.py') as f:
+            f.write(asgi_content)
+
 
 def create():
     pro_name = CHOICE_RES['project_name']
     create_project(pro_name)
     create_manage_file(pro_name)
     create_root_dir_file(pro_name)
+
+
 

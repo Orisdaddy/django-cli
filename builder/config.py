@@ -1,8 +1,7 @@
 Config = {
     'django_vision': '2.2.6',
     'wsgi': {
-        # 'engine': 'gunicorn',  # gunicorn/uWSGI/None
-        'engine': None,  # gunicorn/uWSGI/None
+        'engine': 'gunicorn',  # gunicorn/uWSGI/None
         'mode': 'gevent'
     },
 
@@ -10,17 +9,21 @@ Config = {
         {
             'name': 'app1',
             'views': False,
+        },
+{
+            'name': 'app2',
+            'views': True,
         }
     ],
-    'database': {},
-    # 'database': {
-    #     'engine': 'mysql',
-    #     'host': '127.0.0.1',
-    #     'port': '3306',
-    #     'db': 'db123',
-    #     'user': 'root',
-    #     'password': '123456',
-    # },
+    # 'database': {},
+    'database': {
+        'engine': 'mysql',
+        'host': '127.0.0.1',
+        'port': '3306',
+        'db': 'db123',
+        'user': 'root',
+        'password': '123456',
+    },
 
     'docker': {}
 }
