@@ -2,7 +2,6 @@ from .common import wopen
 from ..config import CHOICE_RES
 
 requirement = {
-    'PyMySQL': False,
     'Django': True,
     'pytz': True,
     'sqlparse': True,

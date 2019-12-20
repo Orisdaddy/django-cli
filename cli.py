@@ -4,7 +4,7 @@ python-vision: 3.x
 import subprocess
 from builder.config import CHOICE_RES, Config
 from builder import script
-from builder.core import require, project, wsgi, git
+from builder.core import require, project, wsgi, git, venv
 
 
 def start():
@@ -28,14 +28,16 @@ def start():
             CHOICE_RES['database'] = Config['database']
             CHOICE_RES['docker'] = Config['docker']
             require.requirement['Django'] = Config['django_vision']
-            require.requirement[Config['wsgi']['engine']] = True
-            require.requirement['PyMySQL'] = True
+            if Config['wsgi']['engine']:
+                require.requirement[Config['wsgi']['engine']] = True
+            if Config['database'].get('engine') == 'mysql':
+                require.requirement['PyMySQL'] = True
 
         else:
             # 选择django版本
             django_vision = CHOICE_RES['django_vision']
             while not django_vision:
-                django_vision = input("选择django版本:")
+                django_vision = input("选择要构建的django版本 (1.1.11):")
             CHOICE_RES['django_vision'] = django_vision
             require.requirement['Django'] = django_vision
 
@@ -52,35 +54,14 @@ def start():
     git.create()
 
     # 构建虚拟环境内容
-    # dev = 'z'
-    # while dev.upper() == 'Y' or dev.upper() == 'N':
-    #     dev = input("是否在本地构建开发环境(y/n):")
-    #     if dev.upper() == 'Y':
-    #         CHOICE_RES['dev_env'] = True
-    #         dev_name = input(f"虚拟环境的名称({project_name}_venv):")
-    #     elif dev.upper() == 'N':
-    #         CHOICE_RES['dev_env'] = False
-
-
-def create_env(venv_name):
-    script.pip_install('virtualenv')
-    p = subprocess.Popen(f"virtualenv {venv_name}", shell=True)
-    p.wait()
-    django_vision = input("选择要构建的django版本 (1.1.11):")
-
-    if django_vision == '':
-        django_vision = '1.11.11'
-    # 下载django
-    CHOICE_RES['django_vision'] = django_vision
-    django_vision = '==' + django_vision
-    p = subprocess.Popen(
-        rf"cd {venv_name}\Scripts & activate & pip3 install django{django_vision} -i https://pypi.tuna.tsinghua.edu.cn/simple",
-        shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE
-    )
-    for line in iter(p.stdout.readline, b''):
-        print(line.decode())
-    p.stdout.close()
-    p.wait()
+    dev = 'z'
+    while dev.upper() != 'Y' and dev.upper() != 'N' and dev:
+        dev = input("是否在本地构建开发环境(Y/n):")
+        if dev.upper() == 'Y' or not dev:
+            dev_name = input(f"虚拟环境的名称(venv):")
+            if not dev_name:
+                dev_name = 'venv'
+            venv.create_env(dev_name)
 
 
 def run():

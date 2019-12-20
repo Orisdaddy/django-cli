@@ -128,7 +128,7 @@ def create_root_dir_file(pro_name):
             # 创建app并返回app_name
             app_name = create_application(pro_name, app)
             application += "\n\t'" + app_name + "',"
-    if database_conf is None:
+    if not database_conf:
         database = '''{
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
