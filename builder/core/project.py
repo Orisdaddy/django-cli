@@ -2,19 +2,7 @@ import os
 import random
 from ..config import CHOICE_RES
 from .common import wopen
-
-
-init_db_content = '''import pymysql
-
-pymysql.install_as_MySQLdb()
-'''
-
-models_content = '''from django.db import models
-
-
-# class User(models.Model):
-#     username = models.CharField(max_length=32, unique=True)
-'''
+from .file_content import *
 
 
 def get_random_string(length):
@@ -44,25 +32,13 @@ def create_application(pro_name, app_conf):
             f.write(init_db_content)
     else:
         wopen(f'{app_path}/__init__.py').close()
-    admin_content = '''from django.contrib import admin
-# from {0} import models
-
-# admin.site.register(models.User)
-'''.format(app_name)
 
     with wopen(f'{app_path}/admin.py') as f:
-        f.write(admin_content)
-
-    apps_content = """from django.apps import AppConfig
-
-
-class App1Config(AppConfig):
-    name = '{0}'
-""".format(app_name)
+        f.write(admin_content.format(app_name))
 
     print(f'Creating file: {app_path}/apps.py')
     with wopen(f'{app_path}/apps.py') as f:
-        f.write(apps_content)
+        f.write(apps_content.format(app_name))
 
     print(f'Creating file: {app_path}/models.py')
     with wopen(f'{app_path}/models.py') as f:
@@ -102,28 +78,8 @@ def create_project(pro_name):
 
 def create_manage_file(pro_name):
     print('Creating file: manage.py')
-    manage_content = """import os
-import sys
-
-
-def main():
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{0}.settings')
-    try:
-        from django.core.management import execute_from_command_line
-    except ImportError as exc:
-        raise ImportError(
-            "Couldn't import Django. Are you sure it's installed and "
-            "available on your PYTHONPATH environment variable? Did you "
-            "forget to activate a virtual environment?"
-        ) from exc
-    execute_from_command_line(sys.argv)
-
-
-if __name__ == '__main__':
-    main()
-""".format(pro_name)
     with wopen(f'project/{pro_name}/manage.py') as f:
-        f.write(manage_content)
+        f.write(manage_content.format(pro_name))
     wopen(f'project/{pro_name}/test.py').close()
 
 
@@ -166,93 +122,10 @@ def create_root_dir_file(pro_name):
     }
 }
 ''' % (engine, db, host, port, user, password)
-
-    setting_content = """import os
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-SECRET_KEY = '%s'
-
-
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
-
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',%s
-]
-
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
-
-ROOT_URLCONF = '%s.urls'
-
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
-WSGI_APPLICATION = '%s.wsgi.application'
-
-DATABASES = %s
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
-USE_I18N = True
-
-USE_L10N = True
-
-USE_TZ = True
-
-STATIC_URL = '/static/'
-""" % (secret_key, application, pro_name, pro_name, database)
-
     wopen(f'{pro_path}/{pro_name}/__init__.py').close()
-
     print(f'Creating file: {pro_name}/setting.py')
     with wopen(f'{pro_path}/{pro_name}/setting.py') as f:
-        f.write(setting_content)
+        f.write(setting_content % (secret_key, application, pro_name, pro_name, database))
     django_vision = CHOICE_RES['django_vision']
     if django_vision.startswith('1'):
         from_url = 'from django.conf.urls import url, include'
@@ -289,29 +162,14 @@ urlpatterns = [
     with wopen(f'{pro_path}/{pro_name}/urls.py') as f:
         f.write(urls_content)
 
-    wsgi_content = """import os
-from django.core.wsgi import get_wsgi_application
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{0}.settings')
-
-application = get_wsgi_application()
-""".format(pro_name)
     print(f'Creating file: {pro_name}/wsgi.py')
     with wopen(f'{pro_path}/{pro_name}/wsgi.py') as f:
-        f.write(wsgi_content)
+        f.write(wsgi_content.format(pro_name))
 
     if django_vision.startswith('3'):
-        asgi_content = """import os
-
-from django.core.asgi import get_asgi_application
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{0}.settings')
-
-application = get_asgi_application()
-""".format(pro_name)
         print(f'Creating file: {pro_name}/asgi.py')
         with wopen(f'{pro_path}/{pro_name}/asgi.py') as f:
-            f.write(asgi_content)
+            f.write(asgi_content.format(pro_name))
 
 
 def create():
@@ -319,6 +177,4 @@ def create():
     create_project(pro_name)
     create_manage_file(pro_name)
     create_root_dir_file(pro_name)
-
-
 

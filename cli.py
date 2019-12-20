@@ -1,5 +1,8 @@
 """
 python-vision: 3.x
+
+启动:
+python cli.py
 """
 import subprocess
 from builder.config import CHOICE_RES, Config
