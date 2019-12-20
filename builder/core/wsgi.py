@@ -8,7 +8,7 @@ def create_gunicorn_config(pro_name, worker_class):
 bind = '0.0.0.0:8080'
 timeout = 30
 worker_class = '{0}'
-workers = multiprocessing.cpu_count()*2 + 1
+workers = multiprocessing.cpu_count() * 2 + 1
 threads = 2
 '''.format(worker_class)
     print(f'Creating file: {pro_name}/gunicorn.py')
